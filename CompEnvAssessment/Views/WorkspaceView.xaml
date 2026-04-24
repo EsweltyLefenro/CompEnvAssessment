@@ -1,0 +1,116 @@
+<UserControl x:Class="CompEnvAssessment.Views.WorkspaceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:CompEnvAssessment.Views"
+             xmlns:vm="clr-namespace:CompEnvAssessment.ViewModels">
+
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type vm:FactorsStepViewModel}">
+            <views:FactorsStepView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:CompanyRatingStepViewModel}">
+            <views:CompanyRatingStepView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:StrategyMapsStepViewModel}">
+            <views:StrategyMapsStepView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:SummaryStepViewModel}">
+            <views:SummaryStepView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:ReportStepViewModel}">
+            <views:ReportStepView/>
+        </DataTemplate>
+
+        <Style x:Key="BlockedOverlayStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsWorkspaceBlocked}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid IsEnabled="{Binding IsWorkspaceEnabled}">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsWorkspaceEnabled}" Value="False">
+                            <Setter Property="Opacity" Value="0.35"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="14"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                <ItemsControl ItemsSource="{Binding Steps}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.SelectStepCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    IsEnabled="{Binding IsUnlocked}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Margin="0 0 10 0"
+                                    MinWidth="180">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding StatusText}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource SecondaryTextBrush}"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <ContentControl Content="{Binding CurrentStep}"/>
+            </Border>
+        </Grid>
+
+        <Border Style="{StaticResource BlockedOverlayStyle}"
+                Background="#AAFFFFFF"
+                CornerRadius="18"
+                BorderBrush="{StaticResource BorderBrushSoft}"
+                BorderThickness="1"
+                Padding="28"
+                IsHitTestVisible="True">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        MaxWidth="520">
+                <TextBlock Text="Рабочая область пока заблокирована"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource PrimaryTextBrush}"
+                           TextAlignment="Center"/>
+
+                <TextBlock Text="Заполните начальные данные в верхней части окна и нажмите кнопку «Начать работу». Во время редактирования начальных данных вкладки анализа временно недоступны."
+                           Margin="0 12 0 0"
+                           FontSize="15"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

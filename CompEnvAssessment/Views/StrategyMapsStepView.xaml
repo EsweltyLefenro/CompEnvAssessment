@@ -1,0 +1,36 @@
+<UserControl x:Class="CompEnvAssessment.Views.StrategyMapsStepView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel>
+        <TextBlock Text="Карты стратегической группировки"
+                   Style="{StaticResource SectionTitleTextStyle}"/>
+
+        <TextBlock Text="Здесь будет список пар факторов и отдельный экран карты для выбранной пары."
+                   Style="{StaticResource SmallCaptionTextStyle}"
+                   Margin="0 6 0 18"/>
+
+        <TextBlock Text="{Binding CompletedPairsCount, StringFormat=Обработано пар: {0}}"
+                   FontWeight="SemiBold"/>
+
+        <TextBlock Text="{Binding TextConclusionsCount, StringFormat=Пар с текстовым выводом: {0}}"
+                   Margin="0 4 0 14"
+                   FontWeight="SemiBold"/>
+
+        <ItemsControl ItemsSource="{Binding StrategyMapPairs}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Command="{Binding DataContext.OpenPairCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Margin="0 0 0 8">
+                        <TextBlock Text="Пара факторов"
+                                   FontWeight="SemiBold"/>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

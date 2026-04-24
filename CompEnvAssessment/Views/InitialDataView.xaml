@@ -1,0 +1,126 @@
+<UserControl x:Class="CompEnvAssessment.Views.InitialDataView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border Style="{StaticResource CardStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="14"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="Начальные данные"
+                               Style="{StaticResource SectionTitleTextStyle}"/>
+
+                    <TextBlock Text="Заполните данные пользователя и предприятия. Пока они не подтверждены, работа с анализом недоступна."
+                               Style="{StaticResource SmallCaptionTextStyle}"
+                               Margin="0 4 0 0"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="Изменить начальные данные"
+                        Command="{Binding EditInitialDataCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="18 0 0 0"/>
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.1*"/>
+                    <ColumnDefinition Width="1.1*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0 0 16 0">
+                    <TextBlock Text="Фамилия и имя"
+                               Style="{StaticResource SmallCaptionTextStyle}"/>
+                    <TextBox Text="{Binding UserProfile.FullName, UpdateSourceTrigger=PropertyChanged}"
+                             IsReadOnly="{Binding IsReadOnly}"
+                             ToolTip="Укажите фамилию и имя студента. Эти данные попадут в отчёт."/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0 0 16 0">
+                    <TextBlock Text="Группа"
+                               Style="{StaticResource SmallCaptionTextStyle}"/>
+                    <TextBox Text="{Binding UserProfile.Group, UpdateSourceTrigger=PropertyChanged}"
+                             IsReadOnly="{Binding IsReadOnly}"
+                             ToolTip="Укажите учебную группу, например ИДБ-22-03."/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Режим работы"
+                               Style="{StaticResource SmallCaptionTextStyle}"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Студент"
+                                Command="{Binding SelectStudentModeCommand}"
+                                IsEnabled="{Binding IsEditing}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Margin="0 0 8 0"/>
+
+                        <Button Content="Преподаватель"
+                                Command="{Binding SelectTeacherModeCommand}"
+                                IsEnabled="{Binding IsEditing}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                ToolTip="В режиме преподавателя программа заполняется демонстрационными данными."/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.1*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0 0 16 0">
+                    <TextBlock Text="Название предприятия"
+                               Style="{StaticResource SmallCaptionTextStyle}"/>
+                    <TextBox Text="{Binding EnterpriseProfile.Name, UpdateSourceTrigger=PropertyChanged}"
+                             IsReadOnly="{Binding IsReadOnly}"
+                             ToolTip="Укажите название предприятия, которое будет анализироваться."/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0 0 16 0">
+                    <TextBlock Text="Краткое описание предприятия"
+                               Style="{StaticResource SmallCaptionTextStyle}"/>
+                    <TextBox Text="{Binding EnterpriseProfile.Description, UpdateSourceTrigger=PropertyChanged}"
+                             IsReadOnly="{Binding IsReadOnly}"
+                             Style="{StaticResource LargeTextBoxStyle}"
+                             ToolTip="Кратко опишите, чем занимается предприятие. Это описание попадёт в отчёт."/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2"
+                            VerticalAlignment="Bottom">
+                    <Button Content="{Binding ActionButtonText}"
+                            Command="{Binding ApplyInitialDataCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            MinWidth="190"/>
+                </StackPanel>
+            </Grid>
+
+            <ItemsControl Grid.Row="5"
+                          ItemsSource="{Binding Errors}"
+                          Margin="0 12 0 0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"
+                                   Foreground="{StaticResource DangerBrush}"
+                                   Margin="0 2 0 0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </Border>
+</UserControl>
