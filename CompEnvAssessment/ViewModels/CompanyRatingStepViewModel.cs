@@ -10,25 +10,22 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
 {
     private readonly ValidationService _validationService;
     private readonly RatingCalculationService _ratingCalculationService;
-    private readonly StrategyMapService _strategyMapService;
     private readonly Action _refreshWorkflow;
 
     public CompanyRatingStepViewModel(
         AppProject project,
         ValidationService validationService,
         RatingCalculationService ratingCalculationService,
-        StrategyMapService strategyMapService,
         Action refreshWorkflow)
         : base(
             project,
             2,
             "Оценка компаний",
             "Как оценивать компании",
-            "Укажите долю рынка и оценки компаний по каждому фактору. Оценки вводятся по шкале от 1 до 10.")
+            "Укажите долю рынка и оценки компаний по каждому фактору. Оценки вводятся по шкале от 1 до 10. Можно добавить до 15 конкурентов.")
     {
         _validationService = validationService;
         _ratingCalculationService = ratingCalculationService;
-        _strategyMapService = strategyMapService;
         _refreshWorkflow = refreshWorkflow;
 
         Project.Factors.CollectionChanged += Factors_CollectionChanged;
@@ -41,14 +38,23 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
 
     public ObservableCollection<FactorRatingRowViewModel> RatingRows { get; } = new();
 
-    public decimal TotalMarketShare => Project.Companies.Sum(company => company.MarketShare);
+    public decimal AssessedMarketShare => Project.Companies.Sum(company => company.MarketShare);
 
     public bool HasCompanies => CompanyColumns.Count > 0;
 
-    [RelayCommand]
+    public bool CanAddCompetitor =>
+        Project.CanAddCompetitor;
+
+    public string CompetitorsLimitText =>
+        $"Можно добавить до {AppConstants.MaxCompetitorsCount} конкурентов; всего с оцениваемым предприятием максимум {AppConstants.MaxCompetitorsCount + 1} компаний.";
+
+    [RelayCommand(CanExecute = nameof(CanAddCompetitor))]
     private void AddCompetitor()
     {
-        Project.AddCompetitor();
+        Company? competitor = Project.AddCompetitor();
+
+        if (competitor is null)
+            return;
 
         RebuildDisplayModel();
         RefreshAfterDataChanged();
@@ -87,6 +93,13 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
         return StepValidationResult.Fail(errors);
     }
 
+    public override void OnEnter()
+    {
+        Project.SyncUserCompanyName();
+
+        RebuildDisplayModel();
+    }
+
     private void Factors_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         Project.SyncCompanyScoresWithFactors();
@@ -103,6 +116,7 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
 
     private void RebuildDisplayModel()
     {
+        Project.SyncUserCompanyName();
         Project.SyncCompanyScoresWithFactors();
 
         CompanyColumns.Clear();
@@ -140,8 +154,11 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
         RefreshRows();
 
         OnPropertyChanged(nameof(HasCompanies));
-        OnPropertyChanged(nameof(TotalMarketShare));
+        OnPropertyChanged(nameof(AssessedMarketShare));
+        OnPropertyChanged(nameof(CanAddCompetitor));
+        OnPropertyChanged(nameof(CompetitorsLimitText));
 
+        AddCompetitorCommand.NotifyCanExecuteChanged();
         RemoveCompetitorCommand.NotifyCanExecuteChanged();
     }
 
@@ -169,9 +186,7 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
         if (company.IsUserCompany)
             return false;
 
-        int competitorsCount = Project.Companies.Count(item => !item.IsUserCompany);
-
-        return competitorsCount > AppConstants.MinCompetitorsCount;
+        return Project.CompetitorsCount > AppConstants.MinCompetitorsCount;
     }
 
     private void RefreshAfterDisplayChanged()
@@ -182,9 +197,8 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
 
     private void RefreshAfterDataChanged()
     {
-        _strategyMapService.ResetMapsAndSummary(Project);
-
-        OnPropertyChanged(nameof(TotalMarketShare));
+        OnPropertyChanged(nameof(AssessedMarketShare));
+        OnPropertyChanged(nameof(CanAddCompetitor));
 
         RefreshColumns();
         RefreshRows();
@@ -200,6 +214,7 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
         }
 
         RemoveCompetitorCommand.NotifyCanExecuteChanged();
+        AddCompetitorCommand.NotifyCanExecuteChanged();
     }
 
     private void RefreshRows()

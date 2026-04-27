@@ -26,6 +26,12 @@ public partial class AppProject : ObservableObject
     public int TextStrategyMapConclusionsCount =>
         StrategyMapPairs.Count(pair => pair.HasTextConclusion);
 
+    public int CompetitorsCount =>
+        Companies.Count(company => !company.IsUserCompany);
+
+    public bool CanAddCompetitor =>
+        CompetitorsCount < AppConstants.MaxCompetitorsCount;
+
     public bool HasValidFactors =>
         Factors.Count >= AppConstants.MinFactorsCount
         && Factors.Count <= AppConstants.MaxFactorsCount
@@ -46,7 +52,7 @@ public partial class AppProject : ObservableObject
 
         Companies.Add(new Company
         {
-            Name = "Вы",
+            Name = GetUserCompanyName(),
             IsUserCompany = true
         });
 
@@ -58,8 +64,11 @@ public partial class AppProject : ObservableObject
         SyncCompanyScoresWithFactors();
     }
 
-    public Company AddCompetitor()
+    public Company? AddCompetitor()
     {
+        if (!CanAddCompetitor)
+            return null;
+
         string name = GetNextCompetitorName();
 
         var company = new Company
@@ -82,12 +91,20 @@ public partial class AppProject : ObservableObject
         if (company.IsUserCompany)
             return false;
 
-        int competitorsCount = Companies.Count(c => !c.IsUserCompany);
-
-        if (competitorsCount <= AppConstants.MinCompetitorsCount)
+        if (CompetitorsCount <= AppConstants.MinCompetitorsCount)
             return false;
 
         return Companies.Remove(company);
+    }
+
+    public void SyncUserCompanyName()
+    {
+        Company? userCompany = Companies.FirstOrDefault(company => company.IsUserCompany);
+
+        if (userCompany is not null)
+        {
+            userCompany.Name = GetUserCompanyName();
+        }
     }
 
     public void SyncCompanyScoresWithFactors()
@@ -120,28 +137,6 @@ public partial class AppProject : ObservableObject
         }
     }
 
-    public void ResetStrategyMapPairs()
-    {
-        StrategyMapPairs.Clear();
-    }
-
-    public void RebuildStrategyMapPairs()
-    {
-        StrategyMapPairs.Clear();
-
-        List<CompetitiveFactor> factors = Factors.ToList();
-
-        for (int i = 0; i < factors.Count; i++)
-        {
-            for (int j = i + 1; j < factors.Count; j++)
-            {
-                StrategyMapPairs.Add(new StrategyMapPair(
-                    factors[i].Id,
-                    factors[j].Id));
-            }
-        }
-    }
-
     private string GetNextCompetitorName()
     {
         HashSet<string> existingNames = Companies
@@ -157,5 +152,12 @@ public partial class AppProject : ObservableObject
         }
 
         return $"Компания {number}";
+    }
+
+    private string GetUserCompanyName()
+    {
+        return string.IsNullOrWhiteSpace(EnterpriseProfile.Name)
+            ? "Оцениваемое предприятие"
+            : EnterpriseProfile.Name;
     }
 }

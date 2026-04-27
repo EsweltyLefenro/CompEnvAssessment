@@ -85,11 +85,16 @@ public class ValidationService
             errors.Add($"Должно быть минимум {AppConstants.MinCompetitorsCount} конкурента.");
         }
 
-        decimal totalMarketShare = project.Companies.Sum(company => company.MarketShare);
-
-        if (totalMarketShare > AppConstants.MaxMarketShare)
+        if (competitorsCount > AppConstants.MaxCompetitorsCount)
         {
-            errors.Add($"Суммарная доля рынка не должна превышать 100%. Сейчас: {totalMarketShare:0.00}%.");
+            errors.Add($"Количество конкурентов не должно превышать {AppConstants.MaxCompetitorsCount}.");
+        }
+
+        decimal assessedMarketShare = project.Companies.Sum(company => company.MarketShare);
+
+        if (assessedMarketShare > AppConstants.MaxMarketShare)
+        {
+            errors.Add($"Оцениваемая доля рынка не должна превышать 100%. Сейчас: {assessedMarketShare:0.00}%.");
         }
 
         foreach (Company company in project.Companies)

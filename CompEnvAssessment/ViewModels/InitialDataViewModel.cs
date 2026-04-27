@@ -124,6 +124,8 @@ public partial class InitialDataViewModel : ViewModelBase
             _project.InitializeDefaultCompanies();
         }
 
+        _project.SyncUserCompanyName();
+
         IsConfirmed = true;
         IsEditing = false;
 

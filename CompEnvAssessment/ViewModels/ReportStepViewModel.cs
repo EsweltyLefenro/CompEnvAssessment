@@ -73,7 +73,7 @@ public partial class ReportStepViewModel : StepViewModelBase
 
         Checks.Add(new ReportCheckItemViewModel(
             "Начальные данные",
-            "ФИО, группа, режим работы, название и описание предприятия.",
+            "ФИО, группа, название и описание предприятия.",
             _validationService.ValidateStartup(Project)));
 
         Checks.Add(new ReportCheckItemViewModel(
@@ -83,7 +83,7 @@ public partial class ReportStepViewModel : StepViewModelBase
 
         Checks.Add(new ReportCheckItemViewModel(
             "Оценка компаний",
-            "Заполнены доли рынка и оценки всех компаний по всем факторам.",
+            "Заполнены оцениваемые доли рынка и оценки всех компаний по всем факторам.",
             _validationService.ValidateCompanyRatings(Project)));
 
         Checks.Add(new ReportCheckItemViewModel(
@@ -169,14 +169,10 @@ public partial class ReportStepViewModel : StepViewModelBase
 
     private string BuildInitialDataPreview()
     {
-        string mode = Project.UserProfile.Mode == UserMode.Teacher
-            ? "Преподаватель"
-            : "Студент";
-
         return
             $"ФИО: {GetValueOrPlaceholder(Project.UserProfile.FullName)}{Environment.NewLine}" +
             $"Группа: {GetValueOrPlaceholder(Project.UserProfile.Group)}{Environment.NewLine}" +
-            $"Режим: {mode}{Environment.NewLine}" +
+            $"Дата формирования: {DateTime.Now:dd.MM.yyyy HH:mm}{Environment.NewLine}" +
             $"Предприятие: {GetValueOrPlaceholder(Project.EnterpriseProfile.Name)}{Environment.NewLine}" +
             $"Описание: {GetValueOrPlaceholder(Project.EnterpriseProfile.Description)}";
     }
@@ -205,23 +201,26 @@ public partial class ReportStepViewModel : StepViewModelBase
                     company,
                     Project.Factors);
 
-                return $"{company.Name}: доля рынка {company.MarketShare:0.00}%, рейтинг {rating:0.00}";
+                return $"{company.Name}: оцениваемая доля рынка {company.MarketShare:0.00}%, рейтинг {rating:0.00}";
             }));
     }
 
     private string BuildStrategyMapsPreview()
     {
-        if (Project.StrategyMapPairs.Count == 0)
-            return "Карты стратегической группировки пока не сформированы.";
+        List<StrategyMapPair> pairsWithConclusions = Project.StrategyMapPairs
+            .Where(pair => pair.HasTextConclusion)
+            .ToList();
+
+        if (pairsWithConclusions.Count == 0)
+            return "Текстовые выводы по картам стратегической группировки пока не заполнены.";
 
         return string.Join(
             $"{Environment.NewLine}{Environment.NewLine}",
-            Project.StrategyMapPairs.Select((pair, index) =>
+            pairsWithConclusions.Select((pair, index) =>
             {
                 string title = _strategyMapService.GetPairTitle(Project, pair);
-                string text = GetStrategyMapConclusionText(pair);
 
-                return $"{index + 1}. {title}{Environment.NewLine}{text}";
+                return $"{index + 1}. {title}{Environment.NewLine}{pair.Conclusion}";
             }));
     }
 
@@ -237,17 +236,6 @@ public partial class ReportStepViewModel : StepViewModelBase
         }
 
         return $"{enterpriseName}_competitive_assessment.pdf";
-    }
-
-    private static string GetStrategyMapConclusionText(StrategyMapPair pair)
-    {
-        if (pair.HasTextConclusion)
-            return pair.Conclusion;
-
-        if (pair.IsSkipped)
-            return "По данной паре факторов вывод не требуется.";
-
-        return "Вывод не заполнен.";
     }
 
     private static string GetValueOrPlaceholder(string value)

@@ -27,13 +27,26 @@ public class CompanyRatingColumnViewModel : ViewModelBase
 
     public bool IsUserCompany => Company.IsUserCompany;
 
+    public bool IsNameReadOnly => IsUserCompany;
+
     public bool CanRemove => _canRemoveCompany(Company);
+
+    public string ColumnCaption =>
+        IsUserCompany ? "Оцениваемое предприятие" : "Конкурент";
+
+    public string NameToolTip =>
+        IsUserCompany
+            ? "Название берётся из начальных данных."
+            : "Название компании можно изменить.";
 
     public string Name
     {
         get => Company.Name;
         set
         {
+            if (IsUserCompany)
+                return;
+
             if (Company.Name == value)
                 return;
 
@@ -63,6 +76,9 @@ public class CompanyRatingColumnViewModel : ViewModelBase
     public void Refresh()
     {
         OnPropertyChanged(nameof(Name));
+        OnPropertyChanged(nameof(IsNameReadOnly));
+        OnPropertyChanged(nameof(ColumnCaption));
+        OnPropertyChanged(nameof(NameToolTip));
         OnPropertyChanged(nameof(MarketShare));
         OnPropertyChanged(nameof(WeightedRating));
         OnPropertyChanged(nameof(CanRemove));

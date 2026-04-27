@@ -301,19 +301,23 @@
 
 									<ItemsControl.ItemTemplate>
 										<DataTemplate>
-											<Grid ToolTip="{Binding Label}">
+											<Canvas Width="{Binding Size}"
+                                                    Height="{Binding Size}"
+                                                    ToolTip="{Binding Label}"
+                                                    ClipToBounds="False">
 												<Ellipse Width="{Binding Size}"
                                                          Height="{Binding Size}"
                                                          Style="{StaticResource MapPointEllipseStyle}"/>
 
 												<TextBlock Text="{Binding CompanyName}"
-                                                           Margin="0 -20 0 0"
+                                                           Canvas.Left="{Binding LabelLeft}"
+                                                           Canvas.Top="-22"
+                                                           Width="{Binding LabelWidth}"
                                                            FontSize="11"
                                                            FontWeight="SemiBold"
                                                            Foreground="{StaticResource PrimaryTextBrush}"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Top"/>
-											</Grid>
+                                                           TextAlignment="Center"/>
+											</Canvas>
 										</DataTemplate>
 									</ItemsControl.ItemTemplate>
 								</ItemsControl>
@@ -366,9 +370,8 @@
                                  Text="{Binding SelectedPairItem.Conclusion, UpdateSourceTrigger=PropertyChanged}"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 VerticalScrollBarVisibility="Visible"
+                                 VerticalScrollBarVisibility="Auto"
                                  VerticalContentAlignment="Top"
-                                 MinHeight="220"
                                  Padding="12 10 20 10"
                                  ToolTip="Опишите, какое положение занимают компании на карте и какие выводы можно сделать."/>
 					</Grid>

@@ -8,23 +8,48 @@ public class StrategyMapService
     {
         project.StrategyMapPairs.Clear();
 
+        SyncPairs(project);
+    }
+
+    public void SyncPairs(AppProject project)
+    {
         List<CompetitiveFactor> factors = project.Factors.ToList();
+        HashSet<Guid> factorIds = factors
+            .Select(factor => factor.Id)
+            .ToHashSet();
+
+        List<StrategyMapPair> obsoletePairs = project.StrategyMapPairs
+            .Where(pair => !factorIds.Contains(pair.XFactorId)
+                || !factorIds.Contains(pair.YFactorId))
+            .ToList();
+
+        foreach (StrategyMapPair pair in obsoletePairs)
+        {
+            project.StrategyMapPairs.Remove(pair);
+        }
+
+        HashSet<(Guid First, Guid Second)> existingPairKeys = project.StrategyMapPairs
+            .Select(pair => GetPairKey(pair.XFactorId, pair.YFactorId))
+            .ToHashSet();
 
         for (int i = 0; i < factors.Count; i++)
         {
             for (int j = i + 1; j < factors.Count; j++)
             {
+                (Guid First, Guid Second) pairKey = GetPairKey(
+                    factors[i].Id,
+                    factors[j].Id);
+
+                if (existingPairKeys.Contains(pairKey))
+                    continue;
+
                 project.StrategyMapPairs.Add(new StrategyMapPair(
                     factors[i].Id,
                     factors[j].Id));
+
+                existingPairKeys.Add(pairKey);
             }
         }
-    }
-
-    public void ResetMapsAndSummary(AppProject project)
-    {
-        project.StrategyMapPairs.Clear();
-        project.Summary = string.Empty;
     }
 
     public IReadOnlyList<StrategyMapPoint> BuildPoints(AppProject project, StrategyMapPair pair)
@@ -74,5 +99,12 @@ public class StrategyMapService
     {
         return project.Factors.FirstOrDefault(factor => factor.Id == factorId)?.Name
             ?? "Неизвестный фактор";
+    }
+
+    private static (Guid First, Guid Second) GetPairKey(Guid firstFactorId, Guid secondFactorId)
+    {
+        return firstFactorId.CompareTo(secondFactorId) <= 0
+            ? (firstFactorId, secondFactorId)
+            : (secondFactorId, firstFactorId);
     }
 }

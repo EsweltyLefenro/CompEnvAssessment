@@ -32,7 +32,6 @@ public partial class WorkspaceViewModel : ViewModelBase
                 project,
                 validationService,
                 ratingCalculationService,
-                strategyMapService,
                 RefreshWorkflow),
 
             new StrategyMapsStepViewModel(
@@ -83,6 +82,15 @@ public partial class WorkspaceViewModel : ViewModelBase
         IsWorkspaceEnabled = value;
         OnPropertyChanged(nameof(IsWorkspaceBlocked));
 
+        RefreshWorkflow();
+    }
+
+    public void RefreshCurrentStep()
+    {
+        if (!IsWorkspaceEnabled)
+            return;
+
+        CurrentStep.OnEnter();
         RefreshWorkflow();
     }
 

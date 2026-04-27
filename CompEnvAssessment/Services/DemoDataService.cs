@@ -56,7 +56,7 @@ public class DemoDataService
         project.InitializeDefaultCompanies();
 
         Company userCompany = project.Companies.First(company => company.IsUserCompany);
-        userCompany.Name = "Вы";
+        project.SyncUserCompanyName();
         userCompany.MarketShare = 18;
 
         Company company1 = project.Companies.First(company => company.Name == "Компания 1");

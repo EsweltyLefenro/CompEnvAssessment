@@ -53,10 +53,6 @@ public partial class FactorsStepViewModel : StepViewModelBase
         };
 
         Factors.Add(factor);
-
-        Project.SyncCompanyScoresWithFactors();
-        InvalidateDependentSteps();
-        RefreshAfterChange();
     }
 
     [RelayCommand]
@@ -68,10 +64,6 @@ public partial class FactorsStepViewModel : StepViewModelBase
         factor.PropertyChanged -= Factor_PropertyChanged;
 
         Factors.Remove(factor);
-
-        Project.SyncCompanyScoresWithFactors();
-        InvalidateDependentSteps();
-        RefreshAfterChange();
     }
 
     public override StepValidationResult Validate()
@@ -115,19 +107,15 @@ public partial class FactorsStepViewModel : StepViewModelBase
     {
         if (e.PropertyName is nameof(CompetitiveFactor.Name) or nameof(CompetitiveFactor.Weight))
         {
-            Project.SyncCompanyScoresWithFactors();
-            InvalidateDependentSteps();
             RefreshAfterChange();
         }
     }
 
-    private void InvalidateDependentSteps()
-    {
-        _strategyMapService.ResetMapsAndSummary(Project);
-    }
-
     private void RefreshAfterChange()
     {
+        Project.SyncCompanyScoresWithFactors();
+        _strategyMapService.SyncPairs(Project);
+
         OnPropertyChanged(nameof(TotalWeight));
         OnPropertyChanged(nameof(CanAddFactor));
 

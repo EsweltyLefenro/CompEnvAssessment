@@ -62,10 +62,6 @@ public class ReportService
 
     private static void BuildTitleBlock(ColumnDescriptor column, AppProject project)
     {
-        string mode = project.UserProfile.Mode == UserMode.Teacher
-            ? "Преподаватель"
-            : "Студент";
-
         column.Item().Column(title =>
         {
             title.Spacing(8);
@@ -93,7 +89,6 @@ public class ReportService
 
                     table.Cell().Text($"ФИО: {project.UserProfile.FullName}");
                     table.Cell().Text($"Группа: {project.UserProfile.Group}");
-                    table.Cell().Text($"Режим: {mode}");
                     table.Cell().Text($"Дата формирования: {DateTime.Now:dd.MM.yyyy HH:mm}");
                 });
 
@@ -152,7 +147,7 @@ public class ReportService
             .Bold();
 
         column.Item()
-            .Text("В таблице представлены доли рынка и итоговые взвешенные рейтинги компаний.")
+            .Text("В таблице представлены оцениваемые доли рынка и итоговые взвешенные рейтинги компаний.")
             .FontColor(Colors.Grey.Darken2);
 
         column.Item().Table(table =>
@@ -167,7 +162,7 @@ public class ReportService
             table.Header(header =>
             {
                 HeaderCell(header.Cell(), "Компания");
-                HeaderCell(header.Cell(), "Доля рынка");
+                HeaderCell(header.Cell(), "Оцениваемая доля");
                 HeaderCell(header.Cell(), "Рейтинг");
             });
 
@@ -235,15 +230,19 @@ public class ReportService
             .FontSize(15)
             .Bold();
 
-        if (project.StrategyMapPairs.Count == 0)
+        List<StrategyMapPair> pairsWithConclusions = project.StrategyMapPairs
+            .Where(pair => pair.HasTextConclusion)
+            .ToList();
+
+        if (pairsWithConclusions.Count == 0)
         {
-            column.Item().Text("Карты стратегической группировки не сформированы.");
+            column.Item().Text("Текстовые выводы по картам стратегической группировки не заполнены.");
             return;
         }
 
-        for (int i = 0; i < project.StrategyMapPairs.Count; i++)
+        for (int i = 0; i < pairsWithConclusions.Count; i++)
         {
-            StrategyMapPair pair = project.StrategyMapPairs[i];
+            StrategyMapPair pair = pairsWithConclusions[i];
             string title = _strategyMapService.GetPairTitle(project, pair);
 
             column.Item()
@@ -259,23 +258,7 @@ public class ReportService
                         .Text($"{i + 1}. {title}")
                         .Bold();
 
-                    if (pair.HasTextConclusion)
-                    {
-                        block.Item().Text(pair.Conclusion);
-                    }
-                    else if (pair.IsSkipped)
-                    {
-                        block.Item()
-                            .Text("По данной паре факторов вывод не требуется.")
-                            .Italic()
-                            .FontColor(Colors.Grey.Darken2);
-                    }
-                    else
-                    {
-                        block.Item()
-                            .Text("Вывод не заполнен.")
-                            .FontColor(Colors.Red.Darken2);
-                    }
+                    block.Item().Text(pair.Conclusion);
                 });
         }
     }

@@ -51,7 +51,7 @@ public partial class MainViewModel : ViewModelBase
     private void ConfirmInitialData()
     {
         Workspace.SetWorkspaceEnabled(true);
-        Workspace.RefreshWorkflow();
+        Workspace.RefreshCurrentStep();
     }
 
     private void StartEditingInitialData()

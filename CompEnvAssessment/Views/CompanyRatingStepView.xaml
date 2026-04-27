@@ -21,7 +21,7 @@
 				<TextBlock Text="Оценка компаний"
                            Style="{StaticResource SectionTitleTextStyle}"/>
 
-				<TextBlock Text="Укажите долю рынка и оценки компаний по каждому фактору. Оценки вводятся по шкале от 1 до 10."
+				<TextBlock Text="{Binding CompetitorsLimitText, StringFormat=Укажите долю рынка и оценки компаний по каждому фактору. Оценки вводятся по шкале от 1 до 10. {0}}"
                            Style="{StaticResource SmallCaptionTextStyle}"
                            Margin="0 4 0 0"/>
 			</StackPanel>
@@ -82,11 +82,12 @@
                                         Padding="10"
                                         Margin="-1 0 0 0">
 									<StackPanel>
-										<TextBlock Text="Компания"
+										<TextBlock Text="{Binding ColumnCaption}"
                                                    Style="{StaticResource SmallCaptionTextStyle}"/>
 
 										<TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="Название компании можно изменить."/>
+                                                 IsReadOnly="{Binding IsNameReadOnly}"
+                                                 ToolTip="{Binding NameToolTip}"/>
 
 										<TextBlock Text="Доля рынка, %"
                                                    Style="{StaticResource SmallCaptionTextStyle}"
@@ -190,17 +191,17 @@
 				</Grid.ColumnDefinitions>
 
 				<StackPanel>
-					<TextBlock Text="Суммарная доля рынка"
+					<TextBlock Text="Оцениваемая доля рынка"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource PrimaryTextBrush}"/>
 
-					<TextBlock Text="Суммарная доля рынка всех компаний не должна превышать 100%."
+					<TextBlock Text="Оцениваемая доля рынка всех компаний не должна превышать 100%."
                                Style="{StaticResource SmallCaptionTextStyle}"
                                Margin="0 3 0 0"/>
 				</StackPanel>
 
 				<TextBlock Grid.Column="1"
-                           Text="{Binding TotalMarketShare, StringFormat={}{0:0.00}%}"
+                           Text="{Binding AssessedMarketShare, StringFormat={}{0:0.00}%}"
                            FontSize="24"
                            FontWeight="SemiBold"
                            Foreground="{StaticResource PrimaryBrush}"

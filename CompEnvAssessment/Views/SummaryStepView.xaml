@@ -138,9 +138,8 @@
                              Text="{Binding Summary, UpdateSourceTrigger=PropertyChanged}"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Visible"
+                             VerticalScrollBarVisibility="Auto"
                              VerticalContentAlignment="Top"
-                             MinHeight="260"
                              Padding="12 10 20 10"
                              ToolTip="Сформулируйте общий вывод: позиция предприятия, сильные и слабые стороны, основные риски и направления развития."/>
 				</Grid>

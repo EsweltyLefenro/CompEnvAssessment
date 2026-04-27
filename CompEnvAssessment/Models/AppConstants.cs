@@ -6,6 +6,7 @@ public static class AppConstants
     public const int MaxFactorsCount = 20;
 
     public const int MinCompetitorsCount = 3;
+    public const int MaxCompetitorsCount = 15;
 
     public const int MinScore = 1;
     public const int MaxScore = 10;

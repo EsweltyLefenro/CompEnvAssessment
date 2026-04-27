@@ -71,8 +71,12 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
                 Project,
                 SelectedPairItem.Pair);
 
+            decimal maxMarketShare = points.Count == 0
+                ? 0
+                : points.Max(point => point.MarketShare);
+
             return points
-                .Select(point => new StrategyMapPointViewModel(point))
+                .Select(point => new StrategyMapPointViewModel(point, maxMarketShare))
                 .ToList();
         }
     }
@@ -123,14 +127,11 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
 
     public override void OnEnter()
     {
-        if (Project.StrategyMapPairs.Count == 0)
-        {
-            IReadOnlyList<string> ratingErrors = _validationService.ValidateCompanyRatings(Project);
+        IReadOnlyList<string> ratingErrors = _validationService.ValidateCompanyRatings(Project);
 
-            if (ratingErrors.Count == 0)
-            {
-                _strategyMapService.RebuildPairs(Project);
-            }
+        if (ratingErrors.Count == 0)
+        {
+            _strategyMapService.SyncPairs(Project);
         }
 
         RebuildPairItems();

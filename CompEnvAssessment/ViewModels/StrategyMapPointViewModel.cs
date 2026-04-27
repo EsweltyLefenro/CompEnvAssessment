@@ -6,12 +6,19 @@ public class StrategyMapPointViewModel : ViewModelBase
 {
     private const double MapSize = 440;
     private const double CellSize = MapSize / 10;
+    private const double MapLabelWidth = 120;
+    private const double MaxPointDiameter = CellSize - 4;
+    private const double MinPointDiameter = 6;
     private const double MinScore = 1;
     private const double MaxScore = 10;
+    private readonly decimal _maxMarketShare;
 
-    public StrategyMapPointViewModel(StrategyMapPoint point)
+    public StrategyMapPointViewModel(
+        StrategyMapPoint point,
+        decimal maxMarketShare)
     {
         Point = point;
+        _maxMarketShare = maxMarketShare;
     }
 
     public StrategyMapPoint Point { get; }
@@ -27,21 +34,19 @@ public class StrategyMapPointViewModel : ViewModelBase
     public bool IsUserCompany => Point.IsUserCompany;
 
     public string Label =>
-        $"{CompanyName}: X={X:0}, Y={Y:0}, доля рынка {MarketShare:0.##}%";
+        $"{CompanyName}: X={X:0}, Y={Y:0}, оцениваемая доля рынка {MarketShare:0.##}%";
 
     public double Size
     {
         get
         {
-            double size = 18 + (double)MarketShare * 0.7;
+            if (_maxMarketShare <= 0 || MarketShare <= 0)
+                return MinPointDiameter;
 
-            if (size < 18)
-                return 18;
+            double ratio = (double)(MarketShare / _maxMarketShare);
+            double size = MaxPointDiameter * ratio;
 
-            if (size > 64)
-                return 64;
-
-            return size;
+            return Math.Clamp(size, MinPointDiameter, MaxPointDiameter);
         }
     }
 
@@ -62,6 +67,10 @@ public class StrategyMapPointViewModel : ViewModelBase
             return MapSize - (score - 0.5) * CellSize - Size / 2;
         }
     }
+
+    public double LabelWidth => MapLabelWidth;
+
+    public double LabelLeft => Size / 2 - MapLabelWidth / 2;
 
     private static double ClampScore(double score)
     {
