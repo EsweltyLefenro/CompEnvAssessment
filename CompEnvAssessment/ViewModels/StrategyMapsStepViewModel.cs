@@ -35,48 +35,59 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
 
     public ObservableCollection<StrategyMapPair> StrategyMapPairs => Project.StrategyMapPairs;
 
-    public int TotalPairsCount => StrategyMapPairs.Count;
+    public ObservableCollection<StrategyMapPairItemViewModel> PairItems { get; } = new();
 
-    public int CompletedPairsCount => StrategyMapPairs.Count(pair => pair.IsCompleted);
+    public int TotalPairsCount => PairItems.Count;
 
-    public int TextConclusionsCount => StrategyMapPairs.Count(pair => pair.HasTextConclusion);
+    public int CompletedPairsCount => PairItems.Count(pair => pair.IsCompleted);
 
-    public bool IsPairSelected => SelectedPair is not null;
+    public int TextConclusionsCount => PairItems.Count(pair => pair.HasTextConclusion);
+
+    public int RequiredTextConclusionsCount => AppConstants.MinTextStrategyMapConclusions;
+
+    public string TextConclusionsProgressText =>
+    $"{TextConclusionsCount} / минимум {RequiredTextConclusionsCount}";
+
+    public bool IsPairSelected => SelectedPairItem is not null;
+
+    public bool IsPairListVisible => SelectedPairItem is null;
+
+    public bool IsPairDetailsVisible => SelectedPairItem is not null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsPairSelected))]
-    private StrategyMapPair? selectedPair;
+    [NotifyPropertyChangedFor(nameof(IsPairListVisible))]
+    [NotifyPropertyChangedFor(nameof(IsPairDetailsVisible))]
+    private StrategyMapPairItemViewModel? selectedPairItem;
 
-    public IReadOnlyList<StrategyMapPoint> SelectedPairPoints
+    public IReadOnlyList<StrategyMapPointViewModel> SelectedPairPoints
     {
         get
         {
-            if (SelectedPair is null)
-                return Array.Empty<StrategyMapPoint>();
+            if (SelectedPairItem is null)
+                return Array.Empty<StrategyMapPointViewModel>();
 
-            return _strategyMapService.BuildPoints(Project, SelectedPair);
+            IReadOnlyList<StrategyMapPoint> points = _strategyMapService.BuildPoints(
+                Project,
+                SelectedPairItem.Pair);
+
+            return points
+                .Select(point => new StrategyMapPointViewModel(point))
+                .ToList();
         }
     }
 
-    public string SelectedPairTitle
-    {
-        get
-        {
-            if (SelectedPair is null)
-                return string.Empty;
-
-            return _strategyMapService.GetPairTitle(Project, SelectedPair);
-        }
-    }
+    public string SelectedPairTitle =>
+        SelectedPairItem?.Title ?? string.Empty;
 
     public string SelectedXAxisTitle
     {
         get
         {
-            if (SelectedPair is null)
+            if (SelectedPairItem is null)
                 return string.Empty;
 
-            return _strategyMapService.GetXAxisTitle(Project, SelectedPair);
+            return _strategyMapService.GetXAxisTitle(Project, SelectedPairItem.Pair);
         }
     }
 
@@ -84,31 +95,30 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
     {
         get
         {
-            if (SelectedPair is null)
+            if (SelectedPairItem is null)
                 return string.Empty;
 
-            return _strategyMapService.GetYAxisTitle(Project, SelectedPair);
+            return _strategyMapService.GetYAxisTitle(Project, SelectedPairItem.Pair);
         }
     }
 
     [RelayCommand]
-    private void OpenPair(StrategyMapPair? pair)
+    private void OpenPair(StrategyMapPairItemViewModel? pairItem)
     {
-        if (pair is null)
+        if (pairItem is null)
             return;
 
-        SelectedPair = pair;
+        SelectedPairItem = pairItem;
 
-        OnPropertyChanged(nameof(SelectedPairPoints));
-        OnPropertyChanged(nameof(SelectedPairTitle));
-        OnPropertyChanged(nameof(SelectedXAxisTitle));
-        OnPropertyChanged(nameof(SelectedYAxisTitle));
+        RefreshSelectedPairProperties();
     }
 
     [RelayCommand]
     private void BackToPairsList()
     {
-        SelectedPair = null;
+        SelectedPairItem = null;
+
+        RefreshSelectedPairProperties();
     }
 
     public override void OnEnter()
@@ -123,6 +133,7 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
             }
         }
 
+        RebuildPairItems();
         SubscribeToAllPairs();
         RefreshCounters();
     }
@@ -135,11 +146,6 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
             return StepValidationResult.Success();
 
         return StepValidationResult.Fail(errors);
-    }
-
-    public string GetPairTitle(StrategyMapPair pair)
-    {
-        return _strategyMapService.GetPairTitle(Project, pair);
     }
 
     private void StrategyMapPairs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -160,7 +166,31 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
             }
         }
 
+        RebuildPairItems();
         RefreshCounters();
+    }
+
+    private void RebuildPairItems()
+    {
+        PairItems.Clear();
+
+        foreach (StrategyMapPair pair in StrategyMapPairs)
+        {
+            string title = _strategyMapService.GetPairTitle(Project, pair);
+
+            PairItems.Add(new StrategyMapPairItemViewModel(
+                pair,
+                title,
+                RefreshAfterPairChanged));
+        }
+
+        if (SelectedPairItem is not null)
+        {
+            SelectedPairItem = PairItems.FirstOrDefault(item => item.Pair == SelectedPairItem.Pair);
+        }
+
+        OnPropertyChanged(nameof(PairItems));
+        RefreshSelectedPairProperties();
     }
 
     private void SubscribeToAllPairs()
@@ -182,8 +212,20 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
         if (e.PropertyName is nameof(StrategyMapPair.Conclusion)
             or nameof(StrategyMapPair.IsSkipped))
         {
+            foreach (StrategyMapPairItemViewModel item in PairItems)
+            {
+                item.RefreshStatus();
+            }
+
             RefreshCounters();
         }
+    }
+
+    private void RefreshAfterPairChanged()
+    {
+        RefreshCounters();
+        RefreshSelectedPairProperties();
+        _refreshWorkflow();
     }
 
     private void RefreshCounters()
@@ -191,8 +233,20 @@ public partial class StrategyMapsStepViewModel : StepViewModelBase
         OnPropertyChanged(nameof(TotalPairsCount));
         OnPropertyChanged(nameof(CompletedPairsCount));
         OnPropertyChanged(nameof(TextConclusionsCount));
-        OnPropertyChanged(nameof(SelectedPairPoints));
+        OnPropertyChanged(nameof(RequiredTextConclusionsCount));
+        OnPropertyChanged(nameof(TextConclusionsProgressText));
 
         _refreshWorkflow();
+    }
+
+    private void RefreshSelectedPairProperties()
+    {
+        OnPropertyChanged(nameof(SelectedPairPoints));
+        OnPropertyChanged(nameof(SelectedPairTitle));
+        OnPropertyChanged(nameof(SelectedXAxisTitle));
+        OnPropertyChanged(nameof(SelectedYAxisTitle));
+        OnPropertyChanged(nameof(IsPairSelected));
+        OnPropertyChanged(nameof(IsPairListVisible));
+        OnPropertyChanged(nameof(IsPairDetailsVisible));
     }
 }

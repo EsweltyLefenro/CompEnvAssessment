@@ -14,7 +14,9 @@ public partial class WorkspaceViewModel : ViewModelBase
         AppProject project,
         ValidationService validationService,
         RatingCalculationService ratingCalculationService,
-        StrategyMapService strategyMapService)
+        StrategyMapService strategyMapService,
+        ReportService reportService,
+        FileDialogService fileDialogService)
     {
         _project = project;
 
@@ -42,11 +44,16 @@ public partial class WorkspaceViewModel : ViewModelBase
             new SummaryStepViewModel(
                 project,
                 validationService,
+                strategyMapService,
                 RefreshWorkflow),
 
             new ReportStepViewModel(
                 project,
-                validationService)
+                validationService,
+                ratingCalculationService,
+                strategyMapService,
+                reportService,
+                fileDialogService)
         };
 
         CurrentStep = Steps[0];

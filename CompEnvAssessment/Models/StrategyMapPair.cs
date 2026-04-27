@@ -21,19 +21,30 @@ public partial class StrategyMapPair : ObservableObject
     private bool isSkipped;
 
     public bool HasTextConclusion =>
-        !string.IsNullOrWhiteSpace(Conclusion);
+        !IsSkipped && !string.IsNullOrWhiteSpace(Conclusion);
 
     public bool IsCompleted =>
         IsSkipped || HasTextConclusion;
 
     partial void OnConclusionChanged(string value)
     {
+        if (!string.IsNullOrWhiteSpace(value) && IsSkipped)
+        {
+            IsSkipped = false;
+        }
+
         OnPropertyChanged(nameof(HasTextConclusion));
         OnPropertyChanged(nameof(IsCompleted));
     }
 
     partial void OnIsSkippedChanged(bool value)
     {
+        if (value)
+        {
+            Conclusion = string.Empty;
+        }
+
+        OnPropertyChanged(nameof(HasTextConclusion));
         OnPropertyChanged(nameof(IsCompleted));
     }
 }

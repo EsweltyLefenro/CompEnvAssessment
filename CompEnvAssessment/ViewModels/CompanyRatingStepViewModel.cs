@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CompEnvAssessment.Models;
 using CompEnvAssessment.Services;
@@ -32,62 +31,50 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
         _strategyMapService = strategyMapService;
         _refreshWorkflow = refreshWorkflow;
 
-        Companies.CollectionChanged += Companies_CollectionChanged;
+        Project.Factors.CollectionChanged += Factors_CollectionChanged;
+        Project.Companies.CollectionChanged += Companies_CollectionChanged;
 
-        foreach (Company company in Companies)
-        {
-            SubscribeToCompany(company);
-        }
+        RebuildDisplayModel();
     }
 
-    public ObservableCollection<CompetitiveFactor> Factors => Project.Factors;
+    public ObservableCollection<CompanyRatingColumnViewModel> CompanyColumns { get; } = new();
 
-    public ObservableCollection<Company> Companies => Project.Companies;
+    public ObservableCollection<FactorRatingRowViewModel> RatingRows { get; } = new();
 
-    public decimal TotalMarketShare => Companies.Sum(company => company.MarketShare);
+    public decimal TotalMarketShare => Project.Companies.Sum(company => company.MarketShare);
+
+    public bool HasCompanies => CompanyColumns.Count > 0;
 
     [RelayCommand]
     private void AddCompetitor()
     {
-        Company company = Project.AddCompetitor();
+        Project.AddCompetitor();
 
-        SubscribeToCompany(company);
-
-        RefreshAfterRatingsChange();
+        RebuildDisplayModel();
+        RefreshAfterDataChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanRemoveCompetitor))]
-    private void RemoveCompetitor(Company? company)
+    private void RemoveCompetitor(CompanyRatingColumnViewModel? column)
     {
-        if (company is null)
+        if (column is null)
             return;
 
-        UnsubscribeFromCompany(company);
+        bool removed = Project.RemoveCompetitor(column.Company);
 
-        bool removed = Project.RemoveCompetitor(company);
+        if (!removed)
+            return;
 
-        if (removed)
-        {
-            RefreshAfterRatingsChange();
-        }
+        RebuildDisplayModel();
+        RefreshAfterDataChanged();
     }
 
-    private bool CanRemoveCompetitor(Company? company)
+    private bool CanRemoveCompetitor(CompanyRatingColumnViewModel? column)
     {
-        if (company is null)
+        if (column is null)
             return false;
 
-        if (company.IsUserCompany)
-            return false;
-
-        int competitorsCount = Companies.Count(item => !item.IsUserCompany);
-
-        return competitorsCount > AppConstants.MinCompetitorsCount;
-    }
-
-    public decimal GetWeightedRating(Company company)
-    {
-        return _ratingCalculationService.CalculateWeightedRating(company, Factors);
+        return CanRemoveCompany(column.Company);
     }
 
     public override StepValidationResult Validate()
@@ -100,114 +87,126 @@ public partial class CompanyRatingStepViewModel : StepViewModelBase
         return StepValidationResult.Fail(errors);
     }
 
+    private void Factors_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        Project.SyncCompanyScoresWithFactors();
+
+        RebuildDisplayModel();
+        RefreshAfterDataChanged();
+    }
+
     private void Companies_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.NewItems is not null)
+        RebuildDisplayModel();
+        RefreshAfterDataChanged();
+    }
+
+    private void RebuildDisplayModel()
+    {
+        Project.SyncCompanyScoresWithFactors();
+
+        CompanyColumns.Clear();
+        RatingRows.Clear();
+
+        foreach (Company company in Project.Companies)
         {
-            foreach (Company company in e.NewItems)
+            CompanyColumns.Add(new CompanyRatingColumnViewModel(
+                company,
+                CalculateWeightedRating,
+                CanRemoveCompany,
+                RefreshAfterDisplayChanged,
+                RefreshAfterDataChanged));
+        }
+
+        foreach (CompetitiveFactor factor in Project.Factors)
+        {
+            var row = new FactorRatingRowViewModel(factor);
+
+            foreach (CompanyRatingColumnViewModel column in CompanyColumns)
             {
-                SubscribeToCompany(company);
+                CompanyScore score = GetOrCreateScore(column.Company, factor);
+
+                row.Cells.Add(new CompanyScoreCellViewModel(
+                    factor,
+                    column,
+                    score,
+                    RefreshAfterDataChanged));
             }
+
+            RatingRows.Add(row);
         }
 
-        if (e.OldItems is not null)
-        {
-            foreach (Company company in e.OldItems)
-            {
-                UnsubscribeFromCompany(company);
-            }
-        }
+        RefreshColumns();
+        RefreshRows();
 
-        RefreshAfterRatingsChange();
+        OnPropertyChanged(nameof(HasCompanies));
+        OnPropertyChanged(nameof(TotalMarketShare));
+
+        RemoveCompetitorCommand.NotifyCanExecuteChanged();
     }
 
-    private void SubscribeToCompany(Company company)
+    private CompanyScore GetOrCreateScore(Company company, CompetitiveFactor factor)
     {
-        company.PropertyChanged -= Company_PropertyChanged;
-        company.PropertyChanged += Company_PropertyChanged;
+        CompanyScore? score = company.Scores
+            .FirstOrDefault(item => item.FactorId == factor.Id);
 
-        company.Scores.CollectionChanged -= Scores_CollectionChanged;
-        company.Scores.CollectionChanged += Scores_CollectionChanged;
+        if (score is not null)
+            return score;
 
-        foreach (CompanyScore score in company.Scores)
-        {
-            SubscribeToScore(score);
-        }
+        score = new CompanyScore(factor.Id);
+        company.Scores.Add(score);
+
+        return score;
     }
 
-    private void UnsubscribeFromCompany(Company company)
+    private decimal CalculateWeightedRating(Company company)
     {
-        company.PropertyChanged -= Company_PropertyChanged;
-        company.Scores.CollectionChanged -= Scores_CollectionChanged;
-
-        foreach (CompanyScore score in company.Scores)
-        {
-            score.PropertyChanged -= Score_PropertyChanged;
-        }
+        return _ratingCalculationService.CalculateWeightedRating(company, Project.Factors);
     }
 
-    private void Scores_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private bool CanRemoveCompany(Company company)
     {
-        if (e.NewItems is not null)
-        {
-            foreach (CompanyScore score in e.NewItems)
-            {
-                SubscribeToScore(score);
-            }
-        }
+        if (company.IsUserCompany)
+            return false;
 
-        if (e.OldItems is not null)
-        {
-            foreach (CompanyScore score in e.OldItems)
-            {
-                score.PropertyChanged -= Score_PropertyChanged;
-            }
-        }
+        int competitorsCount = Project.Companies.Count(item => !item.IsUserCompany);
 
-        RefreshAfterRatingsChange();
+        return competitorsCount > AppConstants.MinCompetitorsCount;
     }
 
-    private void SubscribeToScore(CompanyScore score)
+    private void RefreshAfterDisplayChanged()
     {
-        score.PropertyChanged -= Score_PropertyChanged;
-        score.PropertyChanged += Score_PropertyChanged;
+        RefreshColumns();
+        _refreshWorkflow();
     }
 
-    private void Company_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(Company.MarketShare))
-        {
-            RefreshAfterRatingsChange();
-            return;
-        }
-
-        if (e.PropertyName == nameof(Company.Name))
-        {
-            _refreshWorkflow();
-        }
-    }
-
-    private void Score_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(CompanyScore.Score))
-        {
-            RefreshAfterRatingsChange();
-        }
-    }
-
-    private void RefreshAfterRatingsChange()
+    private void RefreshAfterDataChanged()
     {
         _strategyMapService.ResetMapsAndSummary(Project);
 
         OnPropertyChanged(nameof(TotalMarketShare));
 
-        foreach (Company company in Companies)
+        RefreshColumns();
+        RefreshRows();
+
+        _refreshWorkflow();
+    }
+
+    private void RefreshColumns()
+    {
+        foreach (CompanyRatingColumnViewModel column in CompanyColumns)
         {
-            OnPropertyChanged(nameof(company));
+            column.Refresh();
         }
 
         RemoveCompetitorCommand.NotifyCanExecuteChanged();
+    }
 
-        _refreshWorkflow();
+    private void RefreshRows()
+    {
+        foreach (FactorRatingRowViewModel row in RatingRows)
+        {
+            row.Refresh();
+        }
     }
 }
