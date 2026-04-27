@@ -5,36 +5,99 @@
         Title="Оценка конкурентоспособности предприятия во внешней среде"
         Width="1280"
         Height="720"
-        MinWidth="1180"
-        MinHeight="760"
+        MinWidth="900"
+        MinHeight="560"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI"
+        Language="ru-RU"
         FontSize="15">
 
-    <Grid Margin="22">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="18"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <Style x:Key="ScaleModeButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Setter Property="MinWidth" Value="72"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Padding" Value="10 6"/>
+            <Setter Property="Margin" Value="0 0 8 0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
 
-        <TextBlock Grid.Row="0"
-                   Text="Оценка конкурентоспособности предприятия во внешней среде"
-                   Style="{StaticResource PageTitleTextStyle}"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  CanContentScroll="False">
+        <Grid Margin="22">
+            <Grid.LayoutTransform>
+                <ScaleTransform ScaleX="{Binding AppScale}"
+                                ScaleY="{Binding AppScale}"/>
+            </Grid.LayoutTransform>
 
-        <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="18"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <views:InitialDataView Grid.Row="0"
-                                   DataContext="{Binding InitialData}"/>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <views:WorkspaceView Grid.Row="2"
-                                 DataContext="{Binding Workspace}"/>
+                <TextBlock Text="Оценка конкурентоспособности предприятия во внешней среде"
+                           Style="{StaticResource PageTitleTextStyle}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
+
+                <WrapPanel Grid.Column="1"
+                           VerticalAlignment="Center"
+                           Margin="24 0 0 0">
+                    <TextBlock Text="Режим масштаба"
+                               Style="{StaticResource SmallCaptionTextStyle}"
+                               VerticalAlignment="Center"
+                               Margin="0 0 10 0"/>
+
+                    <ItemsControl ItemsSource="{Binding ScaleModes}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Label}"
+                                        Command="{Binding DataContext.SelectScaleModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource ScaleModeButtonStyle}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </WrapPanel>
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <views:InitialDataView Grid.Row="0"
+                                       DataContext="{Binding InitialData}"/>
+
+                <views:WorkspaceView Grid.Row="2"
+                                     DataContext="{Binding Workspace}"/>
+            </Grid>
         </Grid>
-    </Grid>
+    </ScrollViewer>
 </Window>

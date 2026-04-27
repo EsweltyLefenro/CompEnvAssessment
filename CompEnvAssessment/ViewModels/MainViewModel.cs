@@ -1,10 +1,18 @@
 ﻿using CompEnvAssessment.Models;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CompEnvAssessment.Services;
 
 namespace CompEnvAssessment.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
+    private const double HdScale = 0.50;
+    private const double FullHdScale = 0.75;
+    private const double TwoKScale = 1.00;
+    private const double FourKScale = 1.50;
+
     private readonly AppProject _project;
     private readonly ValidationService _validationService;
     private readonly RatingCalculationService _ratingCalculationService;
@@ -15,6 +23,16 @@ public partial class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
+        ScaleModes = new ObservableCollection<ScaleModeOptionViewModel>
+        {
+            new("720p", HdScale),
+            new("Full HD", FullHdScale),
+            new("2K", TwoKScale),
+            new("4K", FourKScale)
+        };
+
+        SelectScaleMode(ScaleModes[1]);
+
         _project = new AppProject();
 
         _validationService = new ValidationService();
@@ -47,6 +65,25 @@ public partial class MainViewModel : ViewModelBase
     public InitialDataViewModel InitialData { get; }
 
     public WorkspaceViewModel Workspace { get; }
+
+    public ObservableCollection<ScaleModeOptionViewModel> ScaleModes { get; }
+
+    [ObservableProperty]
+    private double appScale = FullHdScale;
+
+    [RelayCommand]
+    private void SelectScaleMode(ScaleModeOptionViewModel? scaleMode)
+    {
+        if (scaleMode is null)
+            return;
+
+        foreach (ScaleModeOptionViewModel option in ScaleModes)
+        {
+            option.IsSelected = ReferenceEquals(option, scaleMode);
+        }
+
+        AppScale = scaleMode.Scale;
+    }
 
     private void ConfirmInitialData()
     {
