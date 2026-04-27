@@ -123,14 +123,13 @@ public partial class SummaryStepViewModel : StepViewModelBase
 
         IntermediateConclusions.Clear();
 
-        foreach (StrategyMapPair pair in Project.StrategyMapPairs)
+        foreach (StrategyMapPair pair in Project.StrategyMapPairs.Where(pair => !pair.IsSkipped))
         {
             string title = _strategyMapService.GetPairTitle(Project, pair);
 
             IntermediateConclusions.Add(new StrategyMapConclusionItemViewModel(
                 title,
-                pair.Conclusion,
-                pair.IsSkipped));
+                pair.Conclusion));
         }
 
         OnPropertyChanged(nameof(IntermediateConclusionsCount));

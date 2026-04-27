@@ -13,6 +13,106 @@
         <SolidColorBrush x:Key="PrimaryBrushLight" Color="#2563EB"/>
         <SolidColorBrush x:Key="DangerBrush" Color="#DC2626"/>
         <SolidColorBrush x:Key="SuccessBrush" Color="#15803D"/>
+        <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="#B7C0CE"/>
+        <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="#95A3B8"/>
+        <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="#738197"/>
+
+        <Style x:Key="RoundedScrollBarThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="MinWidth" Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border x:Name="ThumbBorder"
+                                Margin="3 4"
+                                Background="{StaticResource ScrollBarThumbBrush}"
+                                CornerRadius="6"/>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbBorder"
+                                        Property="Background"
+                                        Value="{StaticResource ScrollBarThumbHoverBrush}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbBorder"
+                                        Property="Background"
+                                        Value="{StaticResource ScrollBarThumbPressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RoundedScrollBarPageButtonStyle" TargetType="{x:Type RepeatButton}">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="MinWidth" Value="12"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track"
+                                   IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton x:Name="DecreaseButton"
+                                                  Command="ScrollBar.PageUpCommand"
+                                                  Style="{StaticResource RoundedScrollBarPageButtonStyle}"/>
+                                </Track.DecreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource RoundedScrollBarThumbStyle}"/>
+                                </Track.Thumb>
+
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton x:Name="IncreaseButton"
+                                                  Command="ScrollBar.PageDownCommand"
+                                                  Style="{StaticResource RoundedScrollBarPageButtonStyle}"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter TargetName="PART_Track"
+                                        Property="IsDirectionReversed"
+                                        Value="False"/>
+                                <Setter TargetName="DecreaseButton"
+                                        Property="Command"
+                                        Value="ScrollBar.PageLeftCommand"/>
+                                <Setter TargetName="IncreaseButton"
+                                        Property="Command"
+                                        Value="ScrollBar.PageRightCommand"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="Height" Value="12"/>
+                    <Setter Property="MinWidth" Value="0"/>
+                    <Setter Property="MinHeight" Value="12"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
         <Style x:Key="PageTitleTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="30"/>

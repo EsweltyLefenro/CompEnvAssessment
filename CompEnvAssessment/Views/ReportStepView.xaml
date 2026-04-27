@@ -15,7 +15,7 @@
 			<TextBlock Text="Отчёт"
                        Style="{StaticResource SectionTitleTextStyle}"/>
 
-			<TextBlock Text="Проверьте готовность данных и структуру будущего отчёта. PDF-генерацию подключим отдельным шагом."
+			<TextBlock Text="Проверьте готовность данных и структуру будущего отчёта, затем сформируйте PDF-файл."
                        Style="{StaticResource SmallCaptionTextStyle}"
                        Margin="0 6 0 0"/>
 		</StackPanel>

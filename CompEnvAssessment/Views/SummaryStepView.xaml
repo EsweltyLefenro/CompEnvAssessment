@@ -65,7 +65,8 @@
 
 					<ScrollViewer Grid.Row="4"
                                   VerticalScrollBarVisibility="Auto">
-						<ItemsControl ItemsSource="{Binding IntermediateConclusions}">
+						<ItemsControl ItemsSource="{Binding IntermediateConclusions}"
+                                      Margin="0 0 10 0">
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
 									<Border Background="White"
@@ -137,10 +138,10 @@
                              Text="{Binding Summary, UpdateSourceTrigger=PropertyChanged}"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto"
+                             VerticalScrollBarVisibility="Visible"
                              VerticalContentAlignment="Top"
-                             MinHeight="420"
-                             Padding="12"
+                             MinHeight="260"
+                             Padding="12 10 20 10"
                              ToolTip="Сформулируйте общий вывод: позиция предприятия, сильные и слабые стороны, основные риски и направления развития."/>
 				</Grid>
 			</Border>

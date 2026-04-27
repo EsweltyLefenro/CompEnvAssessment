@@ -82,9 +82,6 @@
                                         Padding="10"
                                         Margin="-1 0 0 0">
 									<StackPanel>
-										<TextBlock Text="{Binding IsUserCompany, Converter={x:Null}}"
-                                                   Visibility="Collapsed"/>
-
 										<TextBlock Text="Компания"
                                                    Style="{StaticResource SmallCaptionTextStyle}"/>
 

@@ -5,6 +5,7 @@ namespace CompEnvAssessment.ViewModels;
 public class StrategyMapPointViewModel : ViewModelBase
 {
     private const double MapSize = 440;
+    private const double CellSize = MapSize / 10;
     private const double MinScore = 1;
     private const double MaxScore = 10;
 
@@ -48,8 +49,8 @@ public class StrategyMapPointViewModel : ViewModelBase
     {
         get
         {
-            double normalized = ((double)X - MinScore) / (MaxScore - MinScore);
-            return normalized * MapSize - Size / 2;
+            double score = ClampScore((double)X);
+            return (score - 0.5) * CellSize - Size / 2;
         }
     }
 
@@ -57,8 +58,19 @@ public class StrategyMapPointViewModel : ViewModelBase
     {
         get
         {
-            double normalized = ((double)Y - MinScore) / (MaxScore - MinScore);
-            return MapSize - normalized * MapSize - Size / 2;
+            double score = ClampScore((double)Y);
+            return MapSize - (score - 0.5) * CellSize - Size / 2;
         }
+    }
+
+    private static double ClampScore(double score)
+    {
+        if (score < MinScore)
+            return MinScore;
+
+        if (score > MaxScore)
+            return MaxScore;
+
+        return score;
     }
 }

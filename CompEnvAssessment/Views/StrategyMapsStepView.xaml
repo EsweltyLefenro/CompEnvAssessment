@@ -33,6 +33,17 @@
 				</DataTrigger>
 			</Style.Triggers>
 		</Style>
+
+		<Style x:Key="MapGridLineStyle" TargetType="Line">
+			<Setter Property="Stroke" Value="#E2E8F0"/>
+			<Setter Property="StrokeThickness" Value="1"/>
+			<Setter Property="SnapsToDevicePixels" Value="True"/>
+		</Style>
+
+		<Style x:Key="MapAxisLineStyle" TargetType="Line" BasedOn="{StaticResource MapGridLineStyle}">
+			<Setter Property="Stroke" Value="#334155"/>
+			<Setter Property="StrokeThickness" Value="2"/>
+		</Style>
 	</UserControl.Resources>
 
 	<Grid>
@@ -99,7 +110,8 @@
 
 			<ScrollViewer Grid.Row="4"
                           VerticalScrollBarVisibility="Auto">
-				<ItemsControl ItemsSource="{Binding PairItems}">
+				<ItemsControl ItemsSource="{Binding PairItems}"
+                              Margin="0 0 10 0">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
 							<Button Command="{Binding DataContext.OpenPairCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -176,8 +188,10 @@
                         BorderBrush="{StaticResource BorderBrushSoft}"
                         BorderThickness="1"
                         CornerRadius="16"
-                        Padding="18">
-					<Grid>
+                        Padding="14">
+					<ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+						<Grid Margin="0 0 10 0">
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="14"/>
@@ -201,42 +215,72 @@
                                     VerticalAlignment="Center"
                                     Background="White">
 
+								<Line X1="0" Y1="0" X2="440" Y2="0"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="44" X2="440" Y2="44"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="88" X2="440" Y2="88"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="132" X2="440" Y2="132"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="176" X2="440" Y2="176"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="220" X2="440" Y2="220"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="264" X2="440" Y2="264"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="308" X2="440" Y2="308"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="352" X2="440" Y2="352"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="0" Y1="396" X2="440" Y2="396"
+                                      Style="{StaticResource MapGridLineStyle}"/>
 								<Line X1="0" Y1="440" X2="440" Y2="440"
-                                      Stroke="#374151"
-                                      StrokeThickness="2"/>
+                                      Style="{StaticResource MapAxisLineStyle}"/>
 
 								<Line X1="0" Y1="0" X2="0" Y2="440"
-                                      Stroke="#374151"
-                                      StrokeThickness="2"/>
-
-								<Line X1="0" Y1="220" X2="440" Y2="220"
-                                      Stroke="#E5E7EB"
-                                      StrokeThickness="1"/>
-
+                                      Style="{StaticResource MapAxisLineStyle}"/>
+								<Line X1="44" Y1="0" X2="44" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="88" Y1="0" X2="88" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="132" Y1="0" X2="132" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="176" Y1="0" X2="176" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
 								<Line X1="220" Y1="0" X2="220" Y2="440"
-                                      Stroke="#E5E7EB"
-                                      StrokeThickness="1"/>
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="264" Y1="0" X2="264" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="308" Y1="0" X2="308" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="352" Y1="0" X2="352" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="396" Y1="0" X2="396" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
+								<Line X1="440" Y1="0" X2="440" Y2="440"
+                                      Style="{StaticResource MapGridLineStyle}"/>
 
-								<TextBlock Canvas.Left="0"
+								<TextBlock Canvas.Left="17"
                                            Canvas.Top="444"
                                            Text="1"
                                            FontSize="12"
                                            Foreground="{StaticResource SecondaryTextBrush}"/>
 
-								<TextBlock Canvas.Left="424"
+								<TextBlock Canvas.Left="410"
                                            Canvas.Top="444"
                                            Text="10"
                                            FontSize="12"
                                            Foreground="{StaticResource SecondaryTextBrush}"/>
 
 								<TextBlock Canvas.Left="-22"
-                                           Canvas.Top="428"
+                                           Canvas.Top="410"
                                            Text="1"
                                            FontSize="12"
                                            Foreground="{StaticResource SecondaryTextBrush}"/>
 
 								<TextBlock Canvas.Left="-28"
-                                           Canvas.Top="-8"
+                                           Canvas.Top="14"
                                            Text="10"
                                            FontSize="12"
                                            Foreground="{StaticResource SecondaryTextBrush}"/>
@@ -292,7 +336,8 @@
                                        Style="{StaticResource SmallCaptionTextStyle}"
                                        Margin="14 0 0 0"/>
 						</Grid>
-					</Grid>
+						</Grid>
+					</ScrollViewer>
 				</Border>
 
 				<Border Grid.Column="2"
@@ -310,18 +355,21 @@
 
 						<CheckBox Grid.Row="0"
                                   IsChecked="{Binding SelectedPairItem.IsSkipped, UpdateSourceTrigger=PropertyChanged}"
-                                  Content="По данной паре факторов вывод не требуется"
                                   FontWeight="SemiBold"
                                   Foreground="{StaticResource PrimaryTextBrush}"
-                                  ToolTip="Используйте этот вариант только если по сочетанию факторов действительно нельзя сделать содержательный вывод."/>
+                                  ToolTip="Используйте этот вариант только если по сочетанию факторов действительно нельзя сделать содержательный вывод.">
+							<TextBlock Text="По данной паре факторов вывод не требуется"
+                                       TextWrapping="Wrap"/>
+						</CheckBox>
 
 						<TextBox Grid.Row="2"
                                  Text="{Binding SelectedPairItem.Conclusion, UpdateSourceTrigger=PropertyChanged}"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 VerticalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Visible"
                                  VerticalContentAlignment="Top"
-                                 MinHeight="360"
+                                 MinHeight="220"
+                                 Padding="12 10 20 10"
                                  ToolTip="Опишите, какое положение занимают компании на карте и какие выводы можно сделать."/>
 					</Grid>
 				</Border>

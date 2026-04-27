@@ -83,14 +83,18 @@ public class ReportService
 
             title.Item()
                 .PaddingTop(6)
-                .Grid(grid =>
+                .Table(table =>
                 {
-                    grid.Columns(2);
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                    });
 
-                    grid.Item().Text($"ФИО: {project.UserProfile.FullName}");
-                    grid.Item().Text($"Группа: {project.UserProfile.Group}");
-                    grid.Item().Text($"Режим: {mode}");
-                    grid.Item().Text($"Дата формирования: {DateTime.Now:dd.MM.yyyy HH:mm}");
+                    table.Cell().Text($"ФИО: {project.UserProfile.FullName}");
+                    table.Cell().Text($"Группа: {project.UserProfile.Group}");
+                    table.Cell().Text($"Режим: {mode}");
+                    table.Cell().Text($"Дата формирования: {DateTime.Now:dd.MM.yyyy HH:mm}");
                 });
 
             title.Item()
